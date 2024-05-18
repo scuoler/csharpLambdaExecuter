@@ -64,19 +64,27 @@ namespace ExecuteScript
                 /* Parse the code into a CSharpSyntaxTree */
                 SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(code);
                 string assemblyName = Path.GetRandomFileName();
+                //System.Xml.Linq
                 var refPaths = new[] {
                     typeof(System.Object).GetTypeInfo().Assembly.Location,
                     typeof(Console).GetTypeInfo().Assembly.Location,
-                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Runtime.dll")
+                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Runtime.dll"),
+                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Xml.Linq.dll"),
+                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Linq.dll"),
+                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Data.dll"),
+                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Data.Common.dll"),
+                    Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Data.DataSetExtensions.dll")
                 };
                 MetadataReference[] references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
+                CSharpCompilationOptions opts = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+                usings: new List<string> { "System", "System.Net", "System.Linq" }, allowUnsafe: true);
 
                 /* Create a CSharp compilation object from the CSharpSyntaxTree */
                 CSharpCompilation compilation = CSharpCompilation.Create(
                     assemblyName,
                     syntaxTrees: new[] { syntaxTree },
                     references: references,
-                    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                    options: opts);
 
                 /* Create a Semantic Model Object from the CSharpSyntaxTree */
                 SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
